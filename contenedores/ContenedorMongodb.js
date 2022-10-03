@@ -1,22 +1,14 @@
 const { error } = require('console');
-
-const admin = require("firebase-admin");
-const config =require('../utils/config.js');
-
-const serviceAccount = require("./Fire/ecommerce-79314-firebase-adminsdk-9dl37-65d64fba90.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-const db = usuario.firestore;
+const { rename } = require('fs');
+const {mongoose}= require('mongoose');
+const config = require('../utils/config.js');
 
 
+await mongoose.connect(config.mongodb.cnxStr,config.mongodb.options);
+class ContenedorMongoDB {
 
-class ContenedorFirebase {
-
-    constructor (nombrecollec){
-          this.colleccion=mongoose.model(nombrecollec)
+    constructor (tablaModel, esquema){
+          this.colleccion=mongoose.model(tablaModel, esquema)
           
     }
 
@@ -25,12 +17,11 @@ class ContenedorFirebase {
               
         
         try{
-            
-            const doc = await this.colleccion.doc(j).get();
-          if (!doc.exists ){
-            throw new Error('error al listar')
+          const docs = await this.colleccion.find({'id':j })
+          if (docs.lenght == 0 ){
+            throw new Error('error al lisar')
           }else {
-            const result = doc.dta();
+            const result = JSON.parse(JSON.stringify(j));
             return result
           }
         
@@ -43,13 +34,11 @@ class ContenedorFirebase {
     async getAll(){
    
         try{
-            result=[];
-            let docs = await this.colleccion.get();
-           docs.forEach(doc => {
-            result.push({id:doc.id,...doc.data()})
-           });
+    
+            let docs = await this.colleccion.find({}).lean();
            
-            return result
+           
+            return docs
           
         }
     
@@ -65,9 +54,11 @@ class ContenedorFirebase {
 
         try {
     
-            let doc = await this.colleccion.add(e);
+            let doc = await this.colleccion.create(e);
+            doc = JSON.parse(JSON.stringify(doc));
             
-            return {...e,id: doc.id}
+            console.log('insertados!');
+            return doc
         } 
         catch (err){
     
@@ -113,4 +104,4 @@ class ContenedorFirebase {
 }
 }
 
-module.exports=ContenedorProducto;
+module.exports=ContenedorMongoDB;
