@@ -1,9 +1,10 @@
-const express = require('express');
-const {Router}= express;
-const routerProducto = Router();
-const ContenedorProducto = require("../models/ContenedorProducto.js");
-const productoApi= new ContenedorProducto();
+import { Router } from "express";
+import { ProductoMock } from "../routes/producto.mock.js";
+
+const usuariosRouter = Router();
+const productoApi = new ProductoMock()
 productoApi.archivo='../DB/ProductoBD.json';
+
 
 
 /* Administracion */
@@ -23,6 +24,7 @@ res.status(403).json({code: 403, msg:`No tiene permiso ${req.baseUrl}${req.url}`
 
 }
 
+
 //Servicios
 //Router
 routerProducto.get("/", async (req, res) => {
@@ -32,6 +34,16 @@ routerProducto.get("/", async (req, res) => {
   //res.json(productos);
   res.json("");
 });
+
+
+routerProducto.get("/api/productos-test",async (req, res) => {
+
+  const cant = req.query.cant;
+    res.status(200).json(productoApi.almacenar(productoApi.generarDatos(cant)));
+
+  
+} );
+
 
 routerProducto.get("/:id", async (req, res) => {
   res.json(await productoApi.getById(req.params.id))
