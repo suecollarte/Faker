@@ -1,4 +1,4 @@
-const ContenedorProductoFire = require('../../contenedores/ContenedorFire.js');
+import  ContenedorProductoFire from '../../contenedores/ContenedorFire.js';
 
 class ProductoDaoFire extends ContenedorProductoFire {
 
@@ -10,4 +10,4 @@ class ProductoDaoFire extends ContenedorProductoFire {
     
 }
 
-module.exports= ProductoDaoFire;
+export default ProductoDaoFire;

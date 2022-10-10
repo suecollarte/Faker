@@ -1,12 +1,11 @@
-const ContenedorMongoDB = require('../../contenedores/ContenedorMongodb.js');
+import ContenedorMongoDB from '../../contenedores/ContenedorMongodb.js';
 
 class ProductoDaoMongo extends ContenedorMongoDB {
 
     constructor(){
-        super('productos',{
+        super('producto',{
             id: {  type: Number, required: true  },
-            timeproducto: {
-            type: String,  required: true  },
+            timeproducto: {type: String,  required: true  },
             nombre: {  type: String,  required: true  },
             descripcion: {  type: String,  required: true  },
             codigoprod: {  type: String,  required: true  },
@@ -16,7 +15,6 @@ class ProductoDaoMongo extends ContenedorMongoDB {
         })
     }
 
-    
 }
 
-module.exports= ProductoDaoMongo;
+export default ProductoDaoMongo;
