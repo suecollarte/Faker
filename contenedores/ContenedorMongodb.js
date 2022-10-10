@@ -1,14 +1,15 @@
-const { error } = require('console');
-const { rename } = require('fs');
-const {mongoose}= require('mongoose');
-const config = require('../utils/config.js');
+import { error } from 'console';
+import { rename } from 'fs';
+import {mongoose} from 'mongoose';
+import {config}  from '../utils/config.js';
 
-
-await mongoose.connect(config.mongodb.cnxStr,config.mongodb.options);
+const strConn = `mongodb://${config.mongodb.host}:${config.mongodb.port}/${config.mongodb.dbName}`
+//const conn = await mongoose.connect(strConn, config.db.options);
+await mongoose.connect(strConn,config.mongodb.options);
 class ContenedorMongoDB {
 
-    constructor (tablaModel, esquema){
-          this.colleccion=mongoose.model(tablaModel, esquema)
+    constructor (tablaModel, schema){
+          this.colleccion=mongoose.model(tablaModel, schema)
           
     }
 
@@ -104,4 +105,4 @@ class ContenedorMongoDB {
 }
 }
 
-module.exports=ContenedorMongoDB;
+export default ContenedorMongoDB;

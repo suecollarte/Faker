@@ -15,18 +15,20 @@ const db = usuario.firestore;
 
 class ContenedorFirebase {
 
-    constructor (nombrecollec){
-          this.colleccion=mongoose.model(nombrecollec)
+    constructor (db,colleccion){
+      this.db= db.amin.firestore()
+      this.colleccion=db.collection(colleccion)
           
     }
-
+    static BD= this.db;
+    static coll = this.colleccion;
     async getById(j)
     {
               
         
         try{
             
-            const doc = await this.colleccion.doc(j).get();
+            const doc = await coll.doc(j).get();
           if (!doc.exists ){
             throw new Error('error al listar')
           }else {
@@ -43,11 +45,12 @@ class ContenedorFirebase {
     async getAll(){
    
         try{
-            result=[];
-            let docs = await this.colleccion.get();
-           docs.forEach(doc => {
-            result.push({id:doc.id,...doc.data()})
-           });
+          let response = await coll.get();
+          let result = response.docs.map((doc)=>({
+            id: doc.id,
+            timestamp: doc.data().timestamp
+          }))
+      
            
             return result
           
@@ -65,9 +68,9 @@ class ContenedorFirebase {
 
         try {
     
-            let doc = await this.colleccion.add(e);
+            let doc = await coll.doc;
             
-            return {...e,id: doc.id}
+            await doc.create(e);
         } 
         catch (err){
     
@@ -80,9 +83,11 @@ class ContenedorFirebase {
     
 
     async deleteAll(){
-
+/// ````
         try {
-            await tablaModel.deleteMany();
+          id='*';
+          doc=BD.doc(`${id}`);
+          await doc.delete();
         }   
         catch (err){
     
@@ -99,7 +104,10 @@ class ContenedorFirebase {
     
     try {
     
-        await usuarioModel.deleteOne(j)
+     
+      
+      doc=BD.doc(`${j}`);
+      await doc.delete();
     
         } 
         catch (err){
@@ -113,4 +121,5 @@ class ContenedorFirebase {
 }
 }
 
-module.exports=ContenedorProducto;
+
+export default ContenedorFire;
