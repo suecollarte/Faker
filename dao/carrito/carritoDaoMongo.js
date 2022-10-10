@@ -1,10 +1,11 @@
-const ContenedorProductoMongo = require('../../contenedores/ContenedorMongodb.js');
+import ContenedorMongoDB from '../../contenedores/ContenedorMongodb.js';
 
-class CarritoDaoMongo extends ContenedorProductoMongo {
+class CarritoDaoMongo extends ContenedorMongoDB {
 
     constructor(){
-        super('carritos',{
-            productos:{type:[], required:true}
+        super('carrito',{id: {  type: Number, required: true  },
+        timestamp: {type: String,  required: true  },
+        productos:{type:[], required:true}
         })
     }
 
@@ -13,4 +14,4 @@ class CarritoDaoMongo extends ContenedorProductoMongo {
     }
 }
 
-module.exports= CarritoDaoMongo;
+export default CarritoDaoMongo;
