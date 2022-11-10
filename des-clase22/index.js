@@ -17,7 +17,7 @@ console.log('Longitud objeto normalizado: ', JSON.stringify(normalizedProducto).
 
 
 console.log(' ------------- OBJETO DESNORMALIZADO --------------- ')
-const denormalizedProducto = denormalize(normalizedProducto.result, agrupacion, normalizedProducto.entities);
-print(denormalizedProducto)
-console.log('Longitud objeto original: ', JSON.stringify(producto).length)
-console.log('Longitud objeto desnormalizado: ', JSON.stringify(denormalizedProducto).length)
+//const denormalizedProducto = denormalize(normalizedProducto.result, agrupacion, normalizedProducto.entities);
+//print(denormalizedProducto)
+//console.log('Longitud objeto original: ', JSON.stringify(producto).length)
+//console.log('Longitud objeto desnormalizado: ', JSON.stringify(denormalizedProducto).length)
