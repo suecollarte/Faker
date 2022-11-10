@@ -1,47 +1,108 @@
 import  express from 'express';
 import exphbs from 'express-handlebars';
-import path from'path';
-import HttpServer  from 'http';
-//import  IOServer  from 'socket.io';
-import * as io from 'socket.io';
+import * as path from 'path';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import { fileURLToPath } from "url";
 
 
+import dotenv from 'dotenv';
 /*** normalize */
-import { denormalize, normalize, schema } from "normalizr"
 import { producto } from './utils/data.js';
 import { print } from "./utils/functions.js";
 
-const productos = new schema.Entity('productos');
+import { schema, normalize, denormalize } from "normalizr";
+import util from 'util';
 
-const agrupacion = new schema.Entity('agrupacion', {
-    productos: [ producto ]
-});
+const mensajesData = {
+ 
+    mensj:[{
+    text: 'mensaje del usuario',
+    author: 
+      {
+        id: "1@cc.cl",
+        nombre:'Mario',
+        apellido: "Robins",
+        edad: 35,
+        alias: "useriatico",
+        avatar:'https://img.freepik.com/vector-premium/mujer-avatar-mujer-negocios_38295-63.jpg'
+      }}
+      ,
+     { text: 'mensaje del usuario',
+    author:
+      {
+        id: "2@cc.cl",
+        nombre:'Maria',
+        apellido: "Robins",
+        edad: 36,
+        alias: "useriatico",
+        avatar:'https://img.freepik.com/vector-premium/mujer-avatar-mujer-negocios_38295-63.jpg'
+      }}
+      ,
+      { text: 'mensaje del usuario',
+    author:{
+        id: "3@cc.cl",
+        nombre:'Marco',
+        apellido: "Robinson",
+        edad: 45,
+        alias: "useriatico",
+        avatar:'https://img.freepik.com/vector-premium/mujer-avatar-mujer-negocios_38295-63.jpg'
+      }}
+    ]
+  };
+   
+
+const textSchema = new schema.Entity('mesj');
+const postSchema = 
+//new schema.Entity('posts', 
+{  
+  usuarios: [textSchema]
+};
+
+const normalizedData = normalize(mensajesData, postSchema);
 
 
-console.log(' ------------- OBJETO NORMALIZADO --------------- ')
-const normalizedProducto = normalize(producto, agrupacion);
-print(normalizedProducto)
+console.log(
+    util.inspect(normalizedData, false, 12, true),
+    JSON.stringify(normalizedData).length
+);
 
-console.log('Longitud objeto original: ', JSON.stringify(producto).length)
-console.log('Longitud objeto normalizado: ', JSON.stringify(normalizedProducto).length)
+const denormalizedData = denormalize(normalizedData.result, postSchema, normalizedData.entities);
 
-console.log(' ------------- OBJETO DESNORMALIZADO --------------- ')
-const denormalizedProducto = denormalize(normalizedProducto.result, agrupacion, normalizedProducto.entities);
-print(denormalizedProducto)
-console.log('Longitud objeto original: ', JSON.stringify(producto).length)
-console.log('Longitud objeto desnormalizado: ', JSON.stringify(denormalizedProducto).length)
+console.log(
+    util.inspect(denormalizedData, false, 12, true),
+    JSON.stringify(denormalizedData).length
+);
 
+const longO = JSON.stringify(mensajesData).length
+console.log('Longitud objeto original', longO);
 
-/* --- Puerto ---*/
-const PORT = 3300;
+const longN = JSON.stringify(normalizedData).length
+console.log('Longitud objeto normalizado', longN);
 
-/* --- Instancia server ---*/
+const longD = JSON.stringify(denormalizedData).length
+console.log('Longitud objeto denormalizado', longD);
+
+const porcentaje = ((longN*100)/longO).toFixed(2)
+console.log(`Porcentaje de compresion: ${porcentaje}%`)
+
+//session persistencia mongo
+const config ={
+  db:{
+      host:'localhost',
+      port: 27017,
+      dbName: 'ecommerce',
+      options: {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          serverSelectionTimeoutMS: 5000
+      }
+
+  }
+
+}
+
+dotenv.config();
 const app = express();
-const httpServer = new HttpServer(app);
-
-/* --- Nuestra 'DB' ---*/
-const DB_MENSAJE = [];
-const DB_PRODUCTOS = [];
 
 
 
@@ -49,98 +110,55 @@ const DB_PRODUCTOS = [];
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static('./public'));
-const routerProducto  = require( "./routes/productos.routes.js");
-
-app.use("api/productos", routerProducto);
 
 
 /* --- Handlebars ---*/
-app.engine(
-  'hbs',
-  exphbs.engine({
-    defaultLayout: 'main',
-    layoutsDir: path.join(app.get('views'), 'layouts'),
-    partialsDir: path.join(app.get('views'), 'partials'),
-    extname: 'hbs'
-  })
-);
-app.set('views', path.join(__dirname, 'views'));
+import { engine } from 'express-handlebars';
+app.engine('hbs', engine({
+  defaultLayout: 'main',
+  layoutsDir: './views/layouts',
+  partialsDir: './views/partials',
+  extname: 'hbs'
+}));
 app.set('view engine', 'hbs');
+app.set('views', './views');
+//app.set("views", path.resolve(__dirname, "./views"));
 
-/* --- Ruta 'Home' ---*/
+
+const obj1=JSON.stringify(normalizedData);
 app.get('/', (req, res) => {
-  res.render('home', { DB_PRODUCTOS });
+  
+    res.render("mensajes"
+  );
+
+    
 });
 
-/* --- WebSocket ---*/
-//const io = new IOServer(httpServer);
-app.set('socketio', io);
-
-io.on('connection', (socket) => {
-  // En cada nueva conexion
-  console.log(`Nuevo cliente conectado! -> ${socket.id}`);
-  socket.emit('from-server-mensajes', { DB_MENSAJE });
-  socket.emit('from-server-producto', { DB_PRODUCTOS });
-
-  // Mensajes chat
-  socket.on('from-client-mensaje', (mensaje) => {
-    DB_MENSAJE.push(mensaje);
-    io.sockets.emit('from-server-mensajes', { DB_MENSAJE });
-  });
-
-  const formAgregarProducto = document.getElementById('formAgregarProducto');
-  formAgregarProducto.addEventListener('submit',e =>{
-    e.preventDefault()
-    const producto ={
-      nombre: formAgregarProducto[0].value,
-      precio : formAgregarProducto[1].value,
-      foto: formAgregarProducto[2].value
-    }
-    socket.emit('update',producto);
-    formAgregarProducto.reset()
-  })
-
-  // Producto nuevo
-  socket.on('from-client-producto', (producto) => {
-    DB_PRODUCTOS.push(producto);
-    io.sockets.emit('from-server-producto', { DB_PRODUCTOS });
-  });
+/* ---------------------- WebSocket ----------------------*/
+// Import de httpServer y socketIo
+import { Server as HttpServer } from 'http';
+import { Server as IOServer } from 'socket.io';
 
 
-  socket.emit('productos',  productosApi.getAll());
+const httpServer = new HttpServer(app);
+const io = new IOServer(httpServer);
 
-socket.on('update', async producto =>{
-  await productosApi.save(producto)
-  io.sockets.emit('productos', productosApi.getAll());
+
+io.on("connection", (socket)=>{
+
+  console.log(`Nuevo cliente conectados! ${socket.id}`);
+  
+    socket.emit('from-server-mensaje', {mensajesData});
+  
+   socket.on('from-client-mensaje', mensaje => {
+    mensajesData.push(mensaje);
+     io.sockets.emit('from-server-mensaje', {mensajesData});
+   });
 
 })
 
-//carga mensajes
-socket.emit('mensajes',  listarMensajesNormalizado());
-//actualizar
-socket.on('nuevoMensaje', async mensaje =>{
-  mensaje.fyh = new Date().toLocaleString() 
-  await mensajesApi.save(mensaje)
-  io.sockets.emit('menajes',await listarMensajesNormalizado());
-})
-
+/* ---------------------- Server ---------------------- */
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+  console.log(`Servidor express escuchando en el puerto ${PORT}`);
 });
-
-
-
-const schemaUsuario = new schema.Entity('mensaje',{},{idAttribute:'email'});
-// esquema mensaje
-const schemaMensaje = new schema.Entity('post',{schemaUsuario},{idAttribute:'id'});
-const schemaMensajes= new schema.Entity('posts',{mensajes:[schemaMensaje]},{idAttribute:'id'});
-const normalizaMensajes=(mensajesConId=>normalize(mensajesConId, schemaMensaje));
-
-
-async function listarMensajesNormalizado(){
-
-  const  mensajes=await mensajes
-}
-/* --- Inicia server ---*/
-const server = httpServer.listen(PORT, () => {
-  console.log(`Servidor iniciado en -> http://localhost:${PORT}`);
-});
-server.on('error', (err) => console.log(`error en server ${err}`));
